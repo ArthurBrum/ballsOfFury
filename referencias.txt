@@ -1,0 +1,28 @@
+
+Arquivo para referencias uteis
+
+
+
+---------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------
+Python Geral:
+
+- http://cs231n.github.io/python-numpy-tutorial/
+
+
+
+---------------------------------------------------------------------------------------------------------------
+Movimento baseado em tempo:
+
+- http://www3.ntu.edu.sg/home/ehchua/programming/opengl/cg_introduction.html#zz-2.
+
+
+
+---------------------------------------------------------------------------------------------------------------
+Colisoes:
+
+- https://stackoverflow.com/questions/345838/ball-to-ball-collision-detection-and-handling
+
+- http://vobarian.com/collisions/2dcollisions2.pdf
+
+- http://geekswithblogs.net/robp/archive/2008/05/15/adding-collision-detection.aspx
