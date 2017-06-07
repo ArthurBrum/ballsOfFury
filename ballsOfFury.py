@@ -46,6 +46,8 @@ def display():
 
     #Operations to change position of all polygons (time based movement)
     p.pos += p.vel/10000 *deltaTime
+    #Aplica aceleracao ao deslocamento
+    #p.pos += p.vel/1000000000 *timeSinceStart*timeSinceStart
 
     for i in range(p.size):
         gl.glPushMatrix()
