@@ -14,6 +14,7 @@ from __future__ import print_function
 import sys
 import math
 import numpy as np
+import scipy.spatial.distance as spd
 
 import OpenGL.GL as gl
 import OpenGL.GLU as glu
@@ -30,6 +31,9 @@ def display():
     global cameraX, cameraY, cameraZ
     global p
     global oldTimeSinceStart
+    radius = 0.1
+
+
     gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
     timeSinceStart = glut.glutGet(glut.GLUT_ELAPSED_TIME)
@@ -44,15 +48,33 @@ def display():
     gl.glRotatef(cameraZ, 0.0, 0.0, 1.0)
 
 
+    #### Movement
+
     #Operations to change position of all polygons (time based movement)
-    p.pos += p.vel/10000 *deltaTime
+    p.pos += p.vel/10000 * deltaTime
+    # TO-DO:
+    #p.vel += p.acel/10000 * deltaTime
+
+    #### Collision
+    distMatrix = spd.squareform(spd.pdist(p.pos))
+    # Percorre todas bolinhas
+    for i in range(p.size):
+        # Comparando com todas as outras
+        for j in range(p.size - i):
+
+            # TO-DO: generalizar para raios diferentes
+            if (i != j and distMatrix[i][j] <= 2*radius):
+                # Colisao
+                # TO-DO: tratar massas diferentes
+                p.vel[i] = p.vel[j] = (p.vel[i] + p.vel[j])/2
+
 
     for i in range(p.size):
         gl.glPushMatrix()
 
         gl.glTranslatef(p.pos[i][0], p.pos[i][1], 0)
         gl.glColor3f(p.color[i][0], p.color[i][1], p.color[i][2])
-        drawCircle(0.1)
+        drawCircle(radius)
 
         gl.glPopMatrix()
 
@@ -92,7 +114,6 @@ def keyboard(key, x, y):
         return
 
     glut.glutPostRedisplay()
-
 
 def generateCirclePoints():
     global nPoints, points, alreadyGenerated
@@ -136,7 +157,7 @@ def main():
 
     global p
     p = PolygonsHandler()
-    p.add_polygon(-1,0,1,0.5, '#00aa00', 'c1')
+    p.add_polygon(-1,0,1.9,0.85, '#00aa00', 'c1')
     p.add_polygon(1,1,0,0, '#aa0000', 'c2')
     p.add_polygon(1,-1,0,0, '#0099FF', 'c3')
 
