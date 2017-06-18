@@ -93,10 +93,16 @@ def display():
                 p.vel[j] = un * vIn + vIt
 
 
-
-
     for i in range(p.size):
         gl.glPushMatrix()
+
+        ## simple wall hit
+        # TO-DO: fix for resizing windows and place code elsewhere
+        if not(-2.8 < p.pos[i][1] < 2.8):
+            p.vel[i][1] = -p.vel[i][1]
+
+        if not(-2.8 < p.pos[i][0] < 2.8):
+            p.vel[i][0] = -p.vel[i][0]
 
         gl.glTranslatef(p.pos[i][0], p.pos[i][1], 0)
         gl.glColor3f(p.color[i][0], p.color[i][1], p.color[i][2])
