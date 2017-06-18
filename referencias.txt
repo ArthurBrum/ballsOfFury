@@ -5,24 +5,23 @@ Arquivo para referencias uteis
 
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
-Python Geral:
+1) Python Geral:
 
-- http://cs231n.github.io/python-numpy-tutorial/
-
-
-
----------------------------------------------------------------------------------------------------------------
-Movimento baseado em tempo:
-
-- http://www3.ntu.edu.sg/home/ehchua/programming/opengl/cg_introduction.html#zz-2.
-
+1.1) http://cs231n.github.io/python-numpy-tutorial/
+1.2) https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html#scipy.spatial.distance.pdist
 
 
 ---------------------------------------------------------------------------------------------------------------
-Colisoes:
+2) Movimento baseado em tempo:
 
-- https://stackoverflow.com/questions/345838/ball-to-ball-collision-detection-and-handling
+2.2) http://www3.ntu.edu.sg/home/ehchua/programming/opengl/cg_introduction.html#zz-2.
 
-- http://vobarian.com/collisions/2dcollisions2.pdf
 
-- http://geekswithblogs.net/robp/archive/2008/05/15/adding-collision-detection.aspx
+---------------------------------------------------------------------------------------------------------------
+3) Colisoes:
+
+3.1) https://stackoverflow.com/questions/345838/ball-to-ball-collision-detection-and-handling
+
+3.2) http://vobarian.com/collisions/2dcollisions2.pdf
+
+3.3) http://geekswithblogs.net/robp/archive/2008/05/15/adding-collision-detection.aspx
