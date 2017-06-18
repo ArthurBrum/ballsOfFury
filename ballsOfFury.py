@@ -57,11 +57,13 @@ def display():
 
 
     # TO-DO: Chamar funcao detectCollision
-    #### Collision
+    #### Collision ###################
+
     # TO-DO: Otimiza verificando se existe algum par com colisao
     #d = spd.pdist(p.pos)
     #if d.min() <= 2*radius:
     #   call collision handler (conteudo abaixo)
+    ##### Handling collision #########
 
     distMatrix = spd.squareform(spd.pdist(p.pos))
 
@@ -74,9 +76,23 @@ def display():
             if (i != j and distMatrix[i][j] <= 2*radius):
                 # Colisao :: Ver referencias.txt -> ref 3.2
                 # TO-DO: tratar massas diferentes
-                temp = p.vel[i].copy()
-                p.vel[i] = p.vel[j].copy()
-                p.vel[j] = temp.copy()
+
+                # Talvez para maior numero de colisoes seja melhor otimizar - ref 3.2.1
+
+                n = p.pos[i] - p.pos[j]         # Calcula vetor normal
+                un = n / np.sqrt(n.dot(n))      # Vetor unitario normal
+                ut = np.array([-un[1], un[0]])  # Vetor unitario tangente
+
+                vIn = un.dot(p.vel[i]) # Projecao da velocidade na direcao normal
+                vJn = un.dot(p.vel[j])
+
+                vIt = ut.dot(p.vel[i])
+                vJt = ut.dot(p.vel[j])
+
+                p.vel[i] = un * vJn + vJt
+                p.vel[j] = un * vIn + vIt
+
+
 
 
     for i in range(p.size):
@@ -168,8 +184,9 @@ def main():
     global p
     p = PolygonsHandler()
     p.add_polygon(-1,0,1.9,0.85, '#00aa00', 'c1')
-    p.add_polygon(1,1,-1,-0.5, '#aa0000', 'c2')
-    p.add_polygon(1,-1,0,0, '#0099FF', 'c3')
+    p.add_polygon(1,1,-2,-1, '#aa0000', 'c2')
+    p.add_polygon(1,-1.1,-2,0, '#0099FF', 'c3')
+    p.add_polygon(-1,-0.95,1.6,0, '#2211AA', 'c4')
 
 
     global nPoints, points, alreadyGenerated, oldTimeSinceStart
