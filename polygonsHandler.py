@@ -11,6 +11,7 @@
 import numpy as np
 import matplotlib.colors as colors
 
+
 class PolygonsHandler():
 
     def __init__(self):
@@ -22,7 +23,7 @@ class PolygonsHandler():
         #radius
         #typeOfPolygon
         
-    def add_polygon(self, posX, posY, velX, velY, color='#ffffff', id=None):
+    def add_polygon(self, posX, posY, velX=0, velY=0, color='#ffffff', id=None):
 
         self.pos = np.vstack((self.pos, [posX, posY]))
         self.vel = np.vstack((self.vel, [velX, velY]))

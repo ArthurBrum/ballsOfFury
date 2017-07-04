@@ -2,7 +2,6 @@
 	ballsOfFury.py
 
 	Created on: 31/05/2017
-		Author: Arthur Brum (RA: 157701)
 
 	Simples plot e movimentacao de poligonos com base em tempo
 
@@ -11,11 +10,9 @@
     sudo pip install pyopengl numpy Enum
 
 '''
-
 from __future__ import division
 from __future__ import print_function
 
-import sys
 import math
 import numpy as np
 import scipy.spatial.distance as spd
@@ -32,68 +29,8 @@ from polygonsHandler import PolygonsHandler
 class State(Enum):
     running, waiting  = range(2)
 
-def renderizarTexto(x, y, text, z=1, tamanho=0.002, color={'r': 1, 'g': 1, 'b': 1}):
-    gl.glPushMatrix()
-    gl.glMaterialfv(gl.GL_FRONT, gl.GL_AMBIENT, [color['r'], color['g'], color['b'], 1.0])
-    gl.glMaterialfv(gl.GL_FRONT, gl.GL_DIFFUSE, [color['r'], color['g'], color['b'], 1.0])
-    gl.glMaterialfv(gl.GL_FRONT, gl.GL_SPECULAR, [color['r'], color['g'], color['b'], 1.0])
-    gl.glMaterialfv(gl.GL_FRONT, gl.GL_SHININESS, 100.0)
-    gl.glTranslatef(x, y, z)
-    gl.glScalef(tamanho, tamanho, tamanho)
-    for ch in text:
-        glut.glutStrokeCharacter(glut.GLUT_STROKE_MONO_ROMAN, glut.ctypes.c_int(ord(ch)))
-    gl.glPopMatrix()
 
-def init():
-    gl.glClearColor(1, 1, 1, 1.0)
-    gl.glShadeModel(gl.GL_FLAT)
-
-def idle():
-    global state
-
-    if state == State.running:
-        glut.glutPostRedisplay()
-
-    if state == State.waiting:
-        pass
-
-
-def display():
-
-    global cameraX, cameraY, cameraZ
-    global p, stillColliding
-    global oldTimeSinceStart
-    radius = 0.1
-
-    gl.glClear(gl.GL_COLOR_BUFFER_BIT)
-
-    timeSinceStart = glut.glutGet(glut.GLUT_ELAPSED_TIME)
-    deltaTime = timeSinceStart - oldTimeSinceStart
-    oldTimeSinceStart = timeSinceStart
-
-    gl.glPushMatrix()
-
-
-
-    #Desenhando limites de pontuacao---------------------------------------------
-    gl.glPushMatrix()
-
-    gl.glLineWidth(20);
-    gl.glTranslatef(0,0.7,0)
-
-    # Limite 1
-    gl.glColor3f(0.2,0.2,0.2)
-    drawCircle(radius*4, nPoints*3, vazio=1)
-
-    # Limite 2
-    gl.glColor3f(0.8,0.1,0.1)
-    drawCircle(radius*12, nPoints*3, vazio=1)
-
-
-    gl.glLineWidth(1);
-
-    gl.glColor3f(0.6,0.2,0.3)
-    gl.glPopMatrix()
+'''
     #-----------------------------------------------------------------------------
 
 
@@ -111,20 +48,12 @@ def display():
     p.pos += p.vel * deltaTime/10000
 
     # Operacao para desacelerar bolinha
-    p.vel -= (p.vel*0.7)*deltaTime/1000
+    #p.vel -= (p.vel*0.6)*deltaTime/1000
 
-    ''' Tentar desaceleracao exponencial depois
-    a = (p.vel[1])**0.8
-    if not(math.isnan(a[1])):
-        print(a)
-    '''
-
-    gl.glLineWidth(2);
-    renderizarTexto(-2.2,2, ("Player1:"+"12"), tamanho=0.0012)
-    renderizarTexto(+0.9,2, ("Player1:"+"08"), tamanho=0.0012)
+    
 
 
-    # TO-DO: Chamar funcao detectCollision
+# TO-DO: Chamar funcao detectCollision
     # Collision ------------------------------------------------------------------
 
     # TO-DO: Otimiza verificando se existe algum par com colisao
@@ -157,8 +86,8 @@ def display():
                 vIn = un.dot(p.vel[i]) # Projecao da velocidade na direcao normal
                 vJn = un.dot(p.vel[j])
 
-                vIt = ut.dot(p.vel[i])
-                vJt = ut.dot(p.vel[j])
+                vJt = ut.dot(p.vel[i])
+                vIt = ut.dot(p.vel[j])
 
                 p.vel[i] = un * vJn + vJt
                 p.vel[j] = un * vIn + vIt
@@ -166,7 +95,7 @@ def display():
                 if (stillColliding[i][j]):
                     stillColliding[i][j] = 0
 
-    # Plotting
+    # Plotting balls
     for i in range(p.size):
         gl.glPushMatrix()
 
@@ -185,112 +114,210 @@ def display():
 
         gl.glPopMatrix()
 
-
-    gl.glPopMatrix()
-
-    glut.glutSwapBuffers()
+'''
 
 
-def reshape(w, h):
-    gl.glViewport(0, 0, w, h)
-    gl.glMatrixMode(gl.GL_PROJECTION)
-    gl.glLoadIdentity()
-    glu.gluPerspective(60.0, w / h, 1.0, 20.0)
-    gl.glMatrixMode(gl.GL_MODELVIEW)
-    gl.glLoadIdentity()
-    glu.gluLookAt(0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
 
-def keyboard(key, x, y):
-    global cameraX, cameraY, cameraZ
+# Constantes
 
-    # Alteracoes na camera
-    if key == 's':
-        cameraX = (cameraX + 5) % 360
-    elif key == 'w':
-        cameraX = (cameraX - 5) % 360
-    elif key == 'd':
-        cameraY = (cameraY + 5) % 360
-    elif key == 'a':
-        cameraY = (cameraY - 5) % 360
-    elif key == 'q':
-        cameraZ = (cameraZ + 5) % 360
-    elif key == 'e':
-        cameraZ = (cameraZ - 5) % 360
-
-    else:
-        return
-
-    glut.glutPostRedisplay()
-
-def generateCirclePoints(nPoints):
-    global points, alreadyGenerated
-
-    points = []
-    for val in np.linspace(0, 2*math.pi, num=nPoints, endpoint = False):
-        points.append([math.cos(val), math.sin(val)])
-
-    alreadyGenerated = nPoints
+COLORS = ['#4fc4ff', '#a6dd4d']
+N_POINTS = 12
+RADIUS = 0.12
+MAP_CENTER_X = 0
+MAP_CENTER_Y = 0.7
 
 
-def drawCircle(radius, nPoints, vazio=0):
-    global points, alreadyGenerated
+class BallsOfFury:
+    def __init__(self):
 
-    if alreadyGenerated != nPoints:
-        generateCirclePoints(nPoints)
+        # Valores Iniciais
+        self.cameraZ = 0
+        self.angulo = 0
+        self.alreadyGenerated = 0
+        self.points = []
+        self.oldTimeSinceStart = 0
+        self.deltaTime = 0
+        self.state = State.waiting
 
-    if vazio:
-        gl.glBegin(gl.GL_LINE_LOOP)
-    else:
-        gl.glBegin(gl.GL_POLYGON)
+        self.p = PolygonsHandler()
+        # Adicionando bolinhas ao ambiente
+        self.p.add_polygon(-0.35, 0, color=COLORS[0])
+        self.p.add_polygon(0.7, 0.7, color=COLORS[1])
+        self.p.add_polygon(1, -0.7, color=COLORS[0])
+        self.p.add_polygon(-0.45, -0.95, velY=10, color=COLORS[1])
 
-    for i in range(nPoints):
-        gl.glVertex3f(points[i][0]*radius, points[i][1]*radius, 0.0)
-    gl.glEnd()
-
-
-def main():
-    _ = glut.glutInit(sys.argv)
-    glut.glutInitDisplayMode(glut.GLUT_DOUBLE | glut.GLUT_RGB)
-
-    glut.glutInitWindowSize(700, 700)
-    glut.glutInitWindowPosition(0, 0)
-    _ = glut.glutCreateWindow(sys.argv[0])
-
-    init()
-
-    # Valores Iniciais
-    global cameraX, cameraY, cameraZ
-    cameraX = 0
-    cameraY = 0
-    cameraZ = 0
-
-    global p
-    p = PolygonsHandler()
-    p.add_polygon(-1, 0, 0, 0, '#00aa00', 'c1')
-    p.add_polygon(1, 1, 0, 0, '#aa0000', 'c2')
-    p.add_polygon(1, -1.1, 0, 0, '#0099FF', 'c3')
-    p.add_polygon(-1, -0.95, 0, 8, '#2211AA', 'c4')
-
-    global stillColliding
-    stillColliding = np.zeros([p.size, p.size])
-
-    global nPoints, points, alreadyGenerated, oldTimeSinceStart
-    alreadyGenerated = 0
-    nPoints = 12
-    points = []
-    oldTimeSinceStart = 0
-
-    global state
-    state = State.running
+        self.stillColliding = np.zeros([self.p.size, self.p.size])
 
 
-    _ = glut.glutDisplayFunc(display)
-    _ = glut.glutReshapeFunc(reshape)
-    _ = glut.glutKeyboardFunc(keyboard)
-    _ = glut.glutIdleFunc(idle)
+    # Renderiza um dado texto para uma dada posicao
+    def renderText(self, x, y, text, z=1, tamanho=0.002, color={'r': 0, 'g': 0, 'b': 0}):
+        gl.glPushMatrix()
 
-    glut.glutMainLoop()
+        gl.glColor3f(color['r'], color['g'], color['b'])
+        gl.glTranslatef(x, y, z)
+        gl.glScalef(tamanho, tamanho, tamanho)
+        for ch in text:
+            glut.glutStrokeCharacter(glut.GLUT_STROKE_MONO_ROMAN, glut.ctypes.c_int(ord(ch)))
+
+        gl.glPopMatrix()
+
+    # Gera vetor de pontos auxiliar na criacao do circulo
+    def generateCirclePoints(self, nPoints):
+
+        self.points = []
+
+        # Cria lista de nPontos - com raio 1 - separados por angulos iguais
+        for val in np.linspace(0, 2 * math.pi, num=nPoints, endpoint=False):
+            self.points.append([math.cos(val), math.sin(val)])
+
+        self.alreadyGenerated = nPoints
+
+    # Desenha circulo na posicao corrente
+    def drawCircle(self, radius, filled=1):
+
+        # Determina numero de pontos necessarios para plotar aceitavelmente um circulo
+        nPoints = (int)(radius*100)
+
+        if self.alreadyGenerated != nPoints:
+            self.generateCirclePoints(nPoints)
+
+        # Desenha um circulo preenchido ou vazio
+        if filled:
+            gl.glBegin(gl.GL_POLYGON)
+        else:
+            gl.glBegin(gl.GL_LINE_LOOP)
+
+        for i in range(nPoints):
+            gl.glVertex3f(self.points[i][0] * radius, self.points[i][1] * radius, 0.0)
+        gl.glEnd()
+
+    # Desenha os circulos limitantes de pontuacao
+    def drawScoreLimits(self):
+        gl.glPushMatrix()
+
+        # Muda posicao de desenho e tambem espessura da linha
+        gl.glLineWidth(6)
+        gl.glTranslatef(MAP_CENTER_X, MAP_CENTER_Y, 0)
+
+        # Limite 1
+        gl.glColor3f(0.2, 0.2, 0.2)
+        self.drawCircle(RADIUS * 4, filled=0)
+
+        # Limite 2
+        gl.glColor3f(0.8, 0.1, 0.1)
+        self.drawCircle(RADIUS * 12, filled=0)
+
+        gl.glLineWidth(1)
+        gl.glPopMatrix()
+
+    # Desenhas as bolinhas que ja estao em campo
+    def drawBalls(self):
+        # Plotting balls
+        for i in range(self.p.size):
+            gl.glPushMatrix()
+
+            ## WALL DETECTION (shouldnt be here)
+            # TO-DO: fix for resizing windows and place code elsewhere
+            if not (-2.8 < self.p.pos[i][1] < 2.8):
+                self.p.vel[i][1] = -self.p.vel[i][1]
+
+            if not (-2.8 < self.p.pos[i][0] < 2.8):
+                self.p.vel[i][0] = -self.p.vel[i][0]
+
+            # Actual plotting
+            gl.glTranslatef(self.p.pos[i][0], self.p.pos[i][1], 0)
+            gl.glColor3f(self.p.color[i][0], self.p.color[i][1], self.p.color[i][2])
+            self.drawCircle(RADIUS)
+
+            gl.glPopMatrix()
+
+    # Atualiza posicoes e velocidades para bolinhas em campo
+    def computeMovement(self):
+        # Operacao para alterar posicao de todos poligonos (baseado no tempo)
+        self.p.pos += self.p.vel * self.deltaTime / 10000
+
+        # Operacao para desacelerar bolinha
+        self.p.vel -= (self.p.vel*0.6)*self.deltaTime/1000
+
+    # Detecta e trata colisoes
+    def collisionsHandling(self):
+
+        # Calcula vetor de distancias e encerra rapidamente se nao existir colisoes
+        d = spd.pdist(self.p.pos)
+        if d.min() >= 2*RADIUS:
+            return
+
+        # Caso exista colisoes, transforma vetor de distancias em matriz quadrada
+        distMatrix = spd.squareform(d)
 
 
-if __name__ == "__main__":
-    main()
+        # Percorre todas bolinhas
+        for i in range(self.p.size):
+            # Comparando com todas as outras
+            for j in range(i):
+
+                # TO-DO: generalizar para raios diferentes
+                if (i != j and distMatrix[i][j] <= 2 * RADIUS):
+                    # Colisao :: Ver referencias.txt -> ref 3.2
+                    # TO-DO: tratar massas diferentes
+
+                    # Marca que collisao esta ocorrendo - evita mais de um tratamento por colisao
+                    self.stillColliding[i][j] = 1
+
+                    n = self.p.pos[i] - self.p.pos[j]           # Calcula vetor normal
+                    un = n / np.sqrt(n.dot(n))                  # Vetor unitario normal
+                    ut = np.array([-un[1], un[0]])              # Vetor unitario tangente
+
+                    vIn = un.dot(self.p.vel[i])                 # Projecao da velocidade na direcao normal
+                    vJn = un.dot(self.p.vel[j])
+
+                    vJt = ut.dot(self.p.vel[i])                 # Projecao na direcao tangente
+                    vIt = ut.dot(self.p.vel[j])
+
+                    self.p.vel[i] = un * vJn + vJt              # Trazendo de volta para base canonica
+                    self.p.vel[j] = un * vIn + vIt
+                else:
+                    if (self.stillColliding[i][j]):
+                        self.stillColliding[i][j] = 0
+                        
+
+
+    def render(self):
+
+        # Calcula passagem de tempo
+        timeSinceStart = glut.glutGet(glut.GLUT_ELAPSED_TIME)
+        self.deltaTime = timeSinceStart - self.oldTimeSinceStart
+        self.oldTimeSinceStart = timeSinceStart
+
+        # Cenario de fundo do jogo
+        self.drawScoreLimits()
+
+
+        # TO-DO: contagem de bolinhas restantes de cada jogador
+
+        # TO-DO: Bolinha a ser jogada
+
+
+        # Rotacao da camera
+        gl.glTranslatef(MAP_CENTER_X, MAP_CENTER_Y, 0)
+        gl.glRotatef(self.cameraZ, 0.0, 0.0, 1.0)
+        gl.glTranslatef(MAP_CENTER_X, -MAP_CENTER_Y, 0)
+
+        # Desenhas as bolinhas ja em campo
+        self.drawBalls()
+
+        # Movimentacao das bolinhas em campo
+        self.computeMovement()
+
+        # Detectando e tratanto colisoes
+        self.collisionsHandling()
+
+        # Textos de pontuacao
+        gl.glColor3f(0.2, 0.2, 0.2)
+        gl.glLineWidth(2)
+        self.renderText(-2.2, 2, ("Player1:" + "12"), tamanho=0.0012)
+        self.renderText(+0.9, 2, ("Player1:" + "08"), tamanho=0.0012)
+        gl.glLineWidth(1)
+
+
+
