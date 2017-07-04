@@ -29,95 +29,6 @@ from polygonsHandler import PolygonsHandler
 class State(Enum):
     running, waiting  = range(2)
 
-
-'''
-    #-----------------------------------------------------------------------------
-
-
-    # Configura posicao da camera
-    gl.glTranslatef(0,0.7,0)
-    gl.glRotatef(cameraX, 1.0, 0.0, 0.0)
-    gl.glRotatef(cameraY, 0.0, 1.0, 0.0)
-    gl.glRotatef(cameraZ, 0.0, 0.0, 1.0)
-    gl.glTranslatef(0,-0.7,0)
-
-
-    #### Movement------------------------------------------------------------------
-
-    # Operacao para alterar posicao de todos poligonos (baseado no tempo)
-    p.pos += p.vel * deltaTime/10000
-
-    # Operacao para desacelerar bolinha
-    #p.vel -= (p.vel*0.6)*deltaTime/1000
-
-    
-
-
-# TO-DO: Chamar funcao detectCollision
-    # Collision ------------------------------------------------------------------
-
-    # TO-DO: Otimiza verificando se existe algum par com colisao
-    #d = spd.pdist(p.pos)
-    #if d.min() <= 2*radius:
-    #   call collision handler (conteudo abaixo)
-    ##### Handling collision #########
-
-    distMatrix = spd.squareform(spd.pdist(p.pos))
-
-    # Percorre todas bolinhas
-    for i in range(p.size):
-        # Comparando com todas as outras
-        for j in range(i):
-
-            # TO-DO: generalizar para raios diferentes
-            if (i != j and distMatrix[i][j] <= 2*radius):
-                # Colisao :: Ver referencias.txt -> ref 3.2
-                # TO-DO: tratar massas diferentes
-
-                # Marca que collisao esta ocorrendo - evita mais de um tratamento por colisao
-                stillColliding[i][j] = 1
-
-                # Talvez para maior numero de colisoes seja melhor otimizar - ref 3.2.1
-
-                n = p.pos[i] - p.pos[j]         # Calcula vetor normal
-                un = n / np.sqrt(n.dot(n))      # Vetor unitario normal
-                ut = np.array([-un[1], un[0]])  # Vetor unitario tangente
-
-                vIn = un.dot(p.vel[i]) # Projecao da velocidade na direcao normal
-                vJn = un.dot(p.vel[j])
-
-                vJt = ut.dot(p.vel[i])
-                vIt = ut.dot(p.vel[j])
-
-                p.vel[i] = un * vJn + vJt
-                p.vel[j] = un * vIn + vIt
-            else:
-                if (stillColliding[i][j]):
-                    stillColliding[i][j] = 0
-
-    # Plotting balls
-    for i in range(p.size):
-        gl.glPushMatrix()
-
-        ## WALL DETECTION (shouldnt be here)
-        # TO-DO: fix for resizing windows and place code elsewhere
-        if not(-2.8 < p.pos[i][1] < 2.8):
-            p.vel[i][1] = -p.vel[i][1]
-
-        if not(-2.8 < p.pos[i][0] < 2.8):
-            p.vel[i][0] = -p.vel[i][0]
-
-        # Actual plotting
-        gl.glTranslatef(p.pos[i][0], p.pos[i][1], 0)
-        gl.glColor3f(p.color[i][0], p.color[i][1], p.color[i][2])
-        drawCircle(radius,nPoints)
-
-        gl.glPopMatrix()
-
-'''
-
-
-
 # Constantes
 
 COLORS = ['#4fc4ff', '#a6dd4d']
@@ -160,6 +71,15 @@ class BallsOfFury:
             glut.glutStrokeCharacter(glut.GLUT_STROKE_MONO_ROMAN, glut.ctypes.c_int(ord(ch)))
 
         gl.glPopMatrix()
+
+    # Desenho de informacoes textuais na tela
+    def drawTexts(self):
+        # Textos de pontuacao
+        gl.glColor3f(0.2, 0.2, 0.2)
+        gl.glLineWidth(2)
+        self.renderText(-2.2, 2, ("Player1:" + "12"), tamanho=0.0012)
+        self.renderText(+0.9, 2, ("Player1:" + "08"), tamanho=0.0012)
+        gl.glLineWidth(1)
 
     # Gera vetor de pontos auxiliar na criacao do circulo
     def generateCirclePoints(self, nPoints):
@@ -312,12 +232,7 @@ class BallsOfFury:
         # Detectando e tratanto colisoes
         self.collisionsHandling()
 
-        # Textos de pontuacao
-        gl.glColor3f(0.2, 0.2, 0.2)
-        gl.glLineWidth(2)
-        self.renderText(-2.2, 2, ("Player1:" + "12"), tamanho=0.0012)
-        self.renderText(+0.9, 2, ("Player1:" + "08"), tamanho=0.0012)
-        gl.glLineWidth(1)
-
+        # Informacoes textuais (pontos, forca)
+        self.drawTexts()
 
 
