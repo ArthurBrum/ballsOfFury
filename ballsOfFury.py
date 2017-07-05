@@ -65,7 +65,6 @@ class BallsOfFury:
         self.score = [0,0]
 
         self.p = PolygonsHandler()
-        # Adicionando bolinhas ao ambiente
 
 
     # Renderiza um dado texto para uma dada posicao
@@ -242,7 +241,6 @@ class BallsOfFury:
 
             # Controla variacao da forca com o tempo
             increment = 0.4 * self.deltaTime/1000
-            print(str(self.strength) +"--"+ str(increment))
 
             if self.strength >= 1:
                 self.incrementSignal = -1
