@@ -4,8 +4,10 @@
     last edit on: 02/07/2017
 
     intructions to run:
-    -execute on terminal
-    sudo pip install pyopengl numpy Enum
+    - install on terminal
+    sudo pip install pyopengl numpy scipy Enum matplotlib 
+    - run on terminal
+    python main.py
 
 '''
 

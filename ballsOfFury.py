@@ -3,11 +3,7 @@
 
 	Created on: 31/05/2017
 
-	Simples plot e movimentacao de poligonos com base em tempo
 
-    intructions to run:
-    -execute on terminal
-    sudo pip install pyopengl numpy Enum
 
 '''
 from __future__ import division
@@ -32,16 +28,24 @@ class State(Enum):
 
 # Constantes
 
+LOWEST_VEL = 0.05
 COLORS = ['#4fc4ff', '#a6dd4d']
 N_POINTS = 12
 RADIUS = 0.12
 LIMIT1_RADIUS = RADIUS *4
 LIMIT2_RADIUS = RADIUS *12
+
 MAP_CENTER_X = 0
 MAP_CENTER_Y = 0.8
 INITIAL_X = 0
 INITIAL_Y = -2.2
-LOWEST_VEL = 0.05
+
+BAR_HEIGHT = 0.8
+BAR_Y_BOTTOM = INITIAL_Y
+BAR_Y_TOP = BAR_Y_BOTTOM + BAR_HEIGHT
+BAR_X_L = 2.55
+BAR_X_R = BAR_X_L + 0.1
+
 
 
 class BallsOfFury:
@@ -50,7 +54,8 @@ class BallsOfFury:
         # Valores Iniciais
         self.cameraZ = 0
         self.angle = 0
-        self.strength = 0
+        self.strength = 0.7
+        self.incrementSignal = 1
         self.alreadyGenerated = 0
         self.points = []
         self.oldTimeSinceStart = 0
@@ -137,6 +142,8 @@ class BallsOfFury:
         gl.glLineWidth(1)
         gl.glPopMatrix()
 
+
+    # Desenha bolinha a ser arremessada junto com mira
     def drawPlayingBall(self):
 
         # Mudando angulo da mira
@@ -187,8 +194,8 @@ class BallsOfFury:
 
         # Faz a bolinha entrar de fato no jogo
         self.p.add_polygon(self.currentPlayer, INITIAL_X, INITIAL_Y,
-                           velX=math.cos(anguloReal) * (self.strength + 20),
-                           velY=math.sin(anguloReal) * (self.strength + 20),
+                           velX=math.cos(anguloReal) * (self.strength*25 + 8),
+                           velY=math.sin(anguloReal) * (self.strength*25 + 8),
                            color=COLORS[self.currentPlayer])
 
         # Muda proximo player a jogar
@@ -227,6 +234,49 @@ class BallsOfFury:
             gl.glPopMatrix()
 
         gl.glPopMatrix()
+
+
+    def drawStrengthBar(self):
+
+        if (self.state == State.aiming):
+
+            # Controla variacao da forca com o tempo
+            increment = 0.4 * self.deltaTime/1000
+            print(str(self.strength) +"--"+ str(increment))
+
+            if self.strength >= 1:
+                self.incrementSignal = -1
+            if self.strength <= 0.1:
+                self.incrementSignal = 1
+
+            self.strength += increment*self.incrementSignal
+
+
+        height = self.strength * BAR_HEIGHT
+
+        # Desenha quadrado interno colorido
+        gl.glBegin(gl.GL_QUADS)
+
+        gl.glColor3f(2*self.strength, 1/(2*self.strength), 0)
+        gl.glVertex3f(BAR_X_L, BAR_Y_BOTTOM +height, 0)
+        gl.glVertex3f(BAR_X_R, BAR_Y_BOTTOM +height, 0)
+        gl.glVertex3f(BAR_X_R, BAR_Y_BOTTOM, 0)
+        gl.glVertex3f(BAR_X_L, BAR_Y_BOTTOM, 0)
+
+        gl.glEnd()
+
+
+        # Desenha borda
+        gl.glLineWidth(2)
+        gl.glBegin(gl.GL_LINE_LOOP)
+
+        gl.glColor3f(0.2, 0.2, 0.2)
+        gl.glVertex3f(BAR_X_L, BAR_Y_TOP, 0)
+        gl.glVertex3f(BAR_X_R, BAR_Y_TOP, 0)
+        gl.glVertex3f(BAR_X_R, BAR_Y_BOTTOM, 0)
+        gl.glVertex3f(BAR_X_L, BAR_Y_BOTTOM, 0)
+        gl.glEnd()
+        gl.glLineWidth(1)
 
 
     # Atualiza posicoes e velocidades para bolinhas em campo
@@ -320,8 +370,11 @@ class BallsOfFury:
         # Desenhas as bolinhas ja em campo
         self.drawBalls()
 
-        # Informacoes textuais (pontos, forca)
+        # Informacoes textuais (pontos, angulo)
         self.drawTexts()
 
-        # TO-DO: contagem de bolinhas restantes de cada jogador
+        # Informacoes de forca
+        self.drawStrengthBar()
+
+
 
