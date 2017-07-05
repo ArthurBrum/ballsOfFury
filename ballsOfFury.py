@@ -1,7 +1,7 @@
 '''
 	ballsOfFury.py
 
-	last edit on: 03/05/2017
+	last edit on: 04/05/2017
 
     Biblioteca com funcoes do jogo
     
@@ -80,6 +80,8 @@ class BallsOfFury:
         gl.glColor3f(color['r'], color['g'], color['b'])
         gl.glTranslatef(x, y, z)
         gl.glScalef(tamanho, tamanho, tamanho)
+
+        # Desenha letra por letra
         for ch in text:
             glut.glutStrokeCharacter(glut.GLUT_STROKE_MONO_ROMAN, glut.ctypes.c_int(ord(ch)))
 
@@ -266,9 +268,8 @@ class BallsOfFury:
 
             self.strength += increment*self.incrementSignal
 
-
+        # apenas var auxiliar para proporcao de altura da barra e forca
         height = self.strength * BAR_HEIGHT
-
 
         # Desenha quadrado interno colorido
         gl.glBegin(gl.GL_QUADS)
@@ -335,7 +336,7 @@ class BallsOfFury:
                         # Colisao :: Ver referencias.txt -> ref 3.2
                         # TO-DO: tratar massas diferentes
 
-                        # Marca que collisao esta ocorrendo - evita mais de um tratamento por colisao
+                        # Marca que colisao esta ocorrendo - evita mais de um tratamento da mesma colisao
                         self.p.stillColliding[i][j] = 1
 
                         n = self.p.pos[i] - self.p.pos[j]           # Calcula vetor normal
@@ -351,6 +352,8 @@ class BallsOfFury:
                         self.p.vel[i] = un * vJn + vIt              # Trazendo de volta para base canonica
                         self.p.vel[j] = un * vIn + vJt
                 else:
+
+                    # Terminou colisao anterior, pode comecar a tratar novas
                     if (self.p.stillColliding[i][j]):
                         self.p.stillColliding[i][j] = 0
 

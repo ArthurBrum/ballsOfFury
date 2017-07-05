@@ -29,9 +29,7 @@ def init():
 
 
 def idle():
-    global state
 
-    #if state == State.running:
     glut.glutPostRedisplay()
 
 

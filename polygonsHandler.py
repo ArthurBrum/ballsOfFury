@@ -31,8 +31,6 @@ class PolygonsHandler():
         self.vel = np.vstack((self.vel, [velX, velY]))
         self.color.append(colors.hex2color(color))
 
-
         self.size += 1
-
         # Redimensiona matriz auxiliar
         self.stillColliding = np.zeros([self.size, self.size])
