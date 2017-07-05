@@ -35,10 +35,13 @@ class State(Enum):
 COLORS = ['#4fc4ff', '#a6dd4d']
 N_POINTS = 12
 RADIUS = 0.12
+LIMIT1_RADIUS = RADIUS *4
+LIMIT2_RADIUS = RADIUS *12
 MAP_CENTER_X = 0
 MAP_CENTER_Y = 0.8
 INITIAL_X = 0
 INITIAL_Y = -2.2
+LOWEST_VEL = 0.05
 
 
 class BallsOfFury:
@@ -46,23 +49,18 @@ class BallsOfFury:
 
         # Valores Iniciais
         self.cameraZ = 0
-        self.angulo = 0
-        self.forca = 0
+        self.angle = 0
+        self.strength = 0
         self.alreadyGenerated = 0
         self.points = []
         self.oldTimeSinceStart = 0
         self.deltaTime = 0
         self.state = State.aiming
         self.currentPlayer = 0
+        self.score = [0,0]
 
         self.p = PolygonsHandler()
         # Adicionando bolinhas ao ambiente
-        self.p.add_polygon(-0.35, 0, color=COLORS[0])
-        self.p.add_polygon(0.7, 0.7, color=COLORS[1])
-        self.p.add_polygon(1.2, -0.9, color=COLORS[0])
-        self.p.add_polygon(-0.45, -0.95, velY=10, color=COLORS[1])
-
-        self.stillColliding = np.zeros([self.p.size, self.p.size])
 
 
     # Renderiza um dado texto para uma dada posicao
@@ -77,14 +75,16 @@ class BallsOfFury:
 
         gl.glPopMatrix()
 
+
     # Desenho de informacoes textuais na tela
     def drawTexts(self):
         # Textos de pontuacao
         gl.glColor3f(0.2, 0.2, 0.2)
         gl.glLineWidth(2)
-        self.renderText(-2.2, 2, ("Player1:" + "12"), tamanho=0.0012)
-        self.renderText(+0.9, 2, ("Player1:" + "08"), tamanho=0.0012)
+        self.renderText(-2.2, 2, ("Player1: " + str(self.score[0])), tamanho=0.001)
+        self.renderText(+0.9, 2, ("Player2: " + str(self.score[1])), tamanho=0.001)
         gl.glLineWidth(1)
+
 
     # Gera vetor de pontos auxiliar na criacao do circulo
     def generateCirclePoints(self, nPoints):
@@ -96,6 +96,7 @@ class BallsOfFury:
             self.points.append([math.cos(val), math.sin(val)])
 
         self.alreadyGenerated = nPoints
+
 
     # Desenha circulo na posicao corrente
     def drawCircle(self, radius, filled=1):
@@ -116,6 +117,7 @@ class BallsOfFury:
             gl.glVertex3f(self.points[i][0] * radius, self.points[i][1] * radius, 0.0)
         gl.glEnd()
 
+
     # Desenha os circulos limitantes de pontuacao
     def drawScoreLimits(self):
         gl.glPushMatrix()
@@ -126,11 +128,11 @@ class BallsOfFury:
 
         # Limite 1
         gl.glColor3f(0.2, 0.2, 0.2)
-        self.drawCircle(RADIUS * 4, filled=0)
+        self.drawCircle(LIMIT1_RADIUS, filled=0)
 
         # Limite 2
         gl.glColor3f(0.8, 0.1, 0.1)
-        self.drawCircle(RADIUS * 12, filled=0)
+        self.drawCircle(LIMIT2_RADIUS, filled=0)
 
         gl.glLineWidth(1)
         gl.glPopMatrix()
@@ -141,7 +143,7 @@ class BallsOfFury:
         gl.glPushMatrix()
 
         gl.glTranslatef(INITIAL_X, INITIAL_Y, 0)
-        gl.glRotatef((self.angulo), 0.0, 0.0, 1.0)
+        gl.glRotatef((self.angle), 0.0, 0.0, 1.0)
         gl.glTranslatef(INITIAL_X, -INITIAL_Y, 0)
 
 
@@ -181,14 +183,16 @@ class BallsOfFury:
         self.state = State.running
 
         # Faz deslocamento de 90 graus e converte valor do angulo para radianos
-        anguloReal = math.pi/2 + self.angulo*(math.pi/180)
+        anguloReal = math.pi/2 + self.angle*(math.pi/180)
 
-        self.p.add_polygon(INITIAL_X, INITIAL_Y,
-                           velX=math.cos(anguloReal) * (self.forca + 20),
-                           velY=math.sin(anguloReal) * (self.forca + 20),
+        # Faz a bolinha entrar de fato no jogo
+        self.p.add_polygon(self.currentPlayer, INITIAL_X, INITIAL_Y,
+                           velX=math.cos(anguloReal) * (self.strength + 20),
+                           velY=math.sin(anguloReal) * (self.strength + 20),
                            color=COLORS[self.currentPlayer])
 
-        self.stillColliding = np.zeros([self.p.size, self.p.size])
+        # Muda proximo player a jogar
+        self.currentPlayer = (self.currentPlayer + 1) % 2
 
 
     # Desenhas as bolinhas que ja estao em campo
@@ -201,17 +205,17 @@ class BallsOfFury:
         gl.glRotatef(self.cameraZ, 0.0, 0.0, 1.0)
         gl.glTranslatef(MAP_CENTER_X, -MAP_CENTER_Y, 0)
 
+        self.score = [0,0]
         # Plotting balls
         for i in range(self.p.size):
 
-            ## WALL DETECTION (shouldnt be here)
-            # TO-DO: alocar codigo em lugar melhor
-            if not (-2.8 < self.p.pos[i][1] < 2.8):
-                self.p.vel[i][1] = -self.p.vel[i][1]
 
-            if not (-2.8 < self.p.pos[i][0] < 2.8):
-                self.p.vel[i][0] = -self.p.vel[i][0]
-
+            # Contagem de pontos
+            dist = spd.euclidean(self.p.pos[i], [MAP_CENTER_X, MAP_CENTER_Y])
+            if dist <= LIMIT2_RADIUS:
+                self.score[self.p.player[i]] +=1
+                if dist <= LIMIT1_RADIUS:
+                    self.score[self.p.player[i]] += 1
 
             # Actual plotting
             gl.glPushMatrix()
@@ -224,6 +228,7 @@ class BallsOfFury:
 
         gl.glPopMatrix()
 
+
     # Atualiza posicoes e velocidades para bolinhas em campo
     def computeMovement(self):
         # Operacao para alterar posicao de todos poligonos (baseado no tempo)
@@ -232,8 +237,16 @@ class BallsOfFury:
         # Operacao para desacelerar bolinhas
         self.p.vel -= (self.p.vel*0.6)*self.deltaTime/1000
 
+        # Zerando os valores muito proximos de zero
+        self.p.vel[np.absolute(self.p.vel) < LOWEST_VEL] = 0
+
+
     # Detecta e trata colisoes
     def collisionsHandling(self):
+
+        # Evita calculos se nao houver bolinhas para colidir
+        if self.p.size <= 1:
+            return
 
         # Calcula vetor de distancias e encerra rapidamente se nao existir colisoes
         d = spd.pdist(self.p.pos)
@@ -255,7 +268,7 @@ class BallsOfFury:
                     # TO-DO: tratar massas diferentes
 
                     # Marca que collisao esta ocorrendo - evita mais de um tratamento por colisao
-                    self.stillColliding[i][j] = 1
+                    self.p.stillColliding[i][j] = 1
 
                     n = self.p.pos[i] - self.p.pos[j]           # Calcula vetor normal
                     un = n / np.sqrt(n.dot(n))                  # Vetor unitario normal
@@ -270,8 +283,8 @@ class BallsOfFury:
                     self.p.vel[i] = un * vJn + vJt              # Trazendo de volta para base canonica
                     self.p.vel[j] = un * vIn + vIt
                 else:
-                    if (self.stillColliding[i][j]):
-                        self.stillColliding[i][j] = 0
+                    if (self.p.stillColliding[i][j]):
+                        self.p.stillColliding[i][j] = 0
                         
 
 
@@ -285,18 +298,27 @@ class BallsOfFury:
         # Cenario de fundo do jogo
         self.drawScoreLimits()
 
+
         if self.state == State.aiming:
             # Desenha bolinha a ser jogada
             self.drawPlayingBall()
 
-        # Desenhas as bolinhas ja em campo
-        self.drawBalls()
+
+        elif self.state == State.running:
+
+            # Quando todas bolinhas ja tiverem parado volta ao estado aiming
+            if not (self.p.vel[self.p.vel!=0].any()):
+                self.state = State.aiming
+
 
         # Movimentacao das bolinhas em campo
         self.computeMovement()
 
         # Detectando e tratanto colisoes
         self.collisionsHandling()
+
+        # Desenhas as bolinhas ja em campo
+        self.drawBalls()
 
         # Informacoes textuais (pontos, forca)
         self.drawTexts()

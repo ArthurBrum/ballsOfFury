@@ -38,12 +38,19 @@ def keyboard(key, x, y):
 
     if key == 'd':
         # Incrementa mira p direita
-        game.angulo -= 1
+        game.angle -= 1
 
     elif key == 'a':
         # Incrementa mira p esquerda
-        game.angulo += 1
+        game.angle += 1
 
+    elif key == '\x20':
+        # Barra de espaco - aremessa bolinha
+        game.throw()
+
+
+    # TO-DO: Rotacionar o mapa para arremessar de outros pontos
+    # (necessario rotacionar tambem posicao inicial de arremesso em relacao a matrix modelview)
     elif key == 'q':
         # Rotaciona para esquerda
         game.cameraZ = (game.cameraZ + 5) % 360
@@ -52,10 +59,6 @@ def keyboard(key, x, y):
         # Rotaciona para direita
         game.cameraZ = (game.cameraZ - 5) % 360
 
-
-    elif key == '\x20':
-        # Barra de espaco - aremessa bolinha
-        game.throw()
 
     else:
         return

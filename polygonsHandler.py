@@ -16,7 +16,7 @@ class PolygonsHandler():
 
     def __init__(self):
         self.size = 0
-        self.id = {}                            # Dictionary de ids  {string:int}
+        self.player = []                        # Indica player dono da bolinha
         self.pos = np.empty([0,2])              # Array Numpy de posicoes
         self.vel = np.empty([0,2])              # Array Numpy de velocidades
         self.color = []                         # Lista de cores - tupla (R,G,B)
@@ -24,16 +24,13 @@ class PolygonsHandler():
         # Matriz auxiliar no tratamento de colisoes
         self.stillColliding = np.zeros([self.size, self.size])
         
-    def add_polygon(self, posX, posY, velX=0, velY=0, color='#000000', id=None):
+    def add_polygon(self, player, posX, posY, velX=0, velY=0, color='#000000'):
 
+        self.player.append(player)
         self.pos = np.vstack((self.pos, [posX, posY]))
         self.vel = np.vstack((self.vel, [velX, velY]))
         self.color.append(colors.hex2color(color))
 
-        if(id == None):
-            self.id[str(self.size)] = self.size
-        else:
-            self.id[str(id)] = self.size
 
         self.size += 1
 
