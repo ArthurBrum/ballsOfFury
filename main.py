@@ -34,39 +34,28 @@ def idle():
 
 
 def keyboard(key, x, y):
-    global cameraX, cameraY, cameraZ
-    global forca, angulo
-    global state
+    global game
 
-
-    if key == 's':
-        # Diminui forca
-        forca -= 1
-
-    elif key == 'w':
-        # Aumenta forca
-        forca += 1
-
-    elif key == 'd':
+    if key == 'd':
         # Incrementa mira p direita
-        angulo += 1
+        game.angulo -= 1
 
     elif key == 'a':
         # Incrementa mira p esquerda
-        angulo -= 1
+        game.angulo += 1
 
     elif key == 'q':
         # Rotaciona para esquerda
-        cameraZ = (cameraZ + 5) % 360
-
+        game.cameraZ = (game.cameraZ + 5) % 360
 
     elif key == 'e':
         # Rotaciona para direita
-        cameraZ = (cameraZ - 5) % 360
+        game.cameraZ = (game.cameraZ - 5) % 360
 
 
-    elif key == 'm':
-        state = (state+1)%2
+    elif key == '\x20':
+        # Barra de espaco - aremessa bolinha
+        game.throw()
 
     else:
         return

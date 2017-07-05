@@ -14,6 +14,7 @@ from __future__ import division
 from __future__ import print_function
 
 import math
+import matplotlib.colors as colors
 import numpy as np
 import scipy.spatial.distance as spd
 
@@ -27,7 +28,7 @@ from polygonsHandler import PolygonsHandler
 
 # Definindo enums para estados de execucao do jogo
 class State(Enum):
-    running, waiting  = range(2)
+    aiming, running  = range(2)
 
 # Constantes
 
@@ -35,7 +36,9 @@ COLORS = ['#4fc4ff', '#a6dd4d']
 N_POINTS = 12
 RADIUS = 0.12
 MAP_CENTER_X = 0
-MAP_CENTER_Y = 0.7
+MAP_CENTER_Y = 0.8
+INITIAL_X = 0
+INITIAL_Y = -2.2
 
 
 class BallsOfFury:
@@ -44,17 +47,19 @@ class BallsOfFury:
         # Valores Iniciais
         self.cameraZ = 0
         self.angulo = 0
+        self.forca = 0
         self.alreadyGenerated = 0
         self.points = []
         self.oldTimeSinceStart = 0
         self.deltaTime = 0
-        self.state = State.waiting
+        self.state = State.aiming
+        self.currentPlayer = 0
 
         self.p = PolygonsHandler()
         # Adicionando bolinhas ao ambiente
         self.p.add_polygon(-0.35, 0, color=COLORS[0])
         self.p.add_polygon(0.7, 0.7, color=COLORS[1])
-        self.p.add_polygon(1, -0.7, color=COLORS[0])
+        self.p.add_polygon(1.2, -0.9, color=COLORS[0])
         self.p.add_polygon(-0.45, -0.95, velY=10, color=COLORS[1])
 
         self.stillColliding = np.zeros([self.p.size, self.p.size])
@@ -130,33 +135,101 @@ class BallsOfFury:
         gl.glLineWidth(1)
         gl.glPopMatrix()
 
+    def drawPlayingBall(self):
+
+        # Mudando angulo da mira
+        gl.glPushMatrix()
+
+        gl.glTranslatef(INITIAL_X, INITIAL_Y, 0)
+        gl.glRotatef((self.angulo), 0.0, 0.0, 1.0)
+        gl.glTranslatef(INITIAL_X, -INITIAL_Y, 0)
+
+
+        # Desenha reta da mira
+        gl.glLineWidth(2)
+        gl.glColor3f(0.2,0.2,0.2)
+
+        gl.glBegin(gl.GL_LINES)
+        gl.glVertex3f(INITIAL_X, INITIAL_Y, 0)
+        gl.glVertex3f(INITIAL_X, (INITIAL_Y+0.8), 0)
+        gl.glEnd()
+
+
+        # Desenha ponta da mira
+        gl.glBegin(gl.GL_POLYGON)
+        gl.glVertex3f(INITIAL_X, (INITIAL_Y+ 0.8), 0)
+        gl.glVertex3f((INITIAL_X+0.05), (INITIAL_Y+ 0.7), 0)
+        gl.glVertex3f((INITIAL_X-0.05), (INITIAL_Y+ 0.7), 0)
+        gl.glEnd()
+
+        gl.glLineWidth(1)
+        gl.glPopMatrix()
+
+        # Desenha a bolinha na posicao inicial
+        gl.glPushMatrix()
+
+        currentColor = colors.hex2color(COLORS[self.currentPlayer])
+        gl.glTranslatef(INITIAL_X, INITIAL_Y, 0)
+        gl.glColor3f(currentColor[0], currentColor[1], currentColor[2])
+        self.drawCircle(RADIUS)
+
+        gl.glPopMatrix()
+
+
+    def throw(self):
+        # Muda estado do jogo para aguardar termino da jogada
+        self.state = State.running
+
+        # Faz deslocamento de 90 graus e converte valor do angulo para radianos
+        anguloReal = math.pi/2 + self.angulo*(math.pi/180)
+
+        self.p.add_polygon(INITIAL_X, INITIAL_Y,
+                           velX=math.cos(anguloReal) * (self.forca + 20),
+                           velY=math.sin(anguloReal) * (self.forca + 20),
+                           color=COLORS[self.currentPlayer])
+
+        self.stillColliding = np.zeros([self.p.size, self.p.size])
+
+
     # Desenhas as bolinhas que ja estao em campo
     def drawBalls(self):
+
+        # Rotacionando camera para ponto de vista desejado
+        gl.glPushMatrix()
+
+        gl.glTranslatef(MAP_CENTER_X, MAP_CENTER_Y, 0)
+        gl.glRotatef(self.cameraZ, 0.0, 0.0, 1.0)
+        gl.glTranslatef(MAP_CENTER_X, -MAP_CENTER_Y, 0)
+
         # Plotting balls
         for i in range(self.p.size):
-            gl.glPushMatrix()
 
             ## WALL DETECTION (shouldnt be here)
-            # TO-DO: fix for resizing windows and place code elsewhere
+            # TO-DO: alocar codigo em lugar melhor
             if not (-2.8 < self.p.pos[i][1] < 2.8):
                 self.p.vel[i][1] = -self.p.vel[i][1]
 
             if not (-2.8 < self.p.pos[i][0] < 2.8):
                 self.p.vel[i][0] = -self.p.vel[i][0]
 
+
             # Actual plotting
+            gl.glPushMatrix()
+
             gl.glTranslatef(self.p.pos[i][0], self.p.pos[i][1], 0)
             gl.glColor3f(self.p.color[i][0], self.p.color[i][1], self.p.color[i][2])
             self.drawCircle(RADIUS)
 
             gl.glPopMatrix()
 
+        gl.glPopMatrix()
+
     # Atualiza posicoes e velocidades para bolinhas em campo
     def computeMovement(self):
         # Operacao para alterar posicao de todos poligonos (baseado no tempo)
         self.p.pos += self.p.vel * self.deltaTime / 10000
 
-        # Operacao para desacelerar bolinha
+        # Operacao para desacelerar bolinhas
         self.p.vel -= (self.p.vel*0.6)*self.deltaTime/1000
 
     # Detecta e trata colisoes
@@ -212,16 +285,9 @@ class BallsOfFury:
         # Cenario de fundo do jogo
         self.drawScoreLimits()
 
-
-        # TO-DO: contagem de bolinhas restantes de cada jogador
-
-        # TO-DO: Bolinha a ser jogada
-
-
-        # Rotacao da camera
-        gl.glTranslatef(MAP_CENTER_X, MAP_CENTER_Y, 0)
-        gl.glRotatef(self.cameraZ, 0.0, 0.0, 1.0)
-        gl.glTranslatef(MAP_CENTER_X, -MAP_CENTER_Y, 0)
+        if self.state == State.aiming:
+            # Desenha bolinha a ser jogada
+            self.drawPlayingBall()
 
         # Desenhas as bolinhas ja em campo
         self.drawBalls()
@@ -235,4 +301,5 @@ class BallsOfFury:
         # Informacoes textuais (pontos, forca)
         self.drawTexts()
 
+        # TO-DO: contagem de bolinhas restantes de cada jogador
 
