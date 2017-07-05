@@ -1,9 +1,10 @@
 '''
 	ballsOfFury.py
 
-	Created on: 31/05/2017
+	last edit on: 03/05/2017
 
-
+    Biblioteca com funcoes do jogo
+    
 
 '''
 from __future__ import division
@@ -26,6 +27,7 @@ from polygonsHandler import PolygonsHandler
 class State(Enum):
     aiming, running  = range(2)
 
+
 # Constantes
 
 LOWEST_VEL = 0.05
@@ -40,11 +42,15 @@ MAP_CENTER_Y = 0.8
 INITIAL_X = 0
 INITIAL_Y = -2.2
 
+PLAYER_X = [[-2.2, -1.4], [0.9, 1.7]]
+TEXT_Y = 2
+
 BAR_HEIGHT = 0.8
 BAR_Y_BOTTOM = INITIAL_Y
 BAR_Y_TOP = BAR_Y_BOTTOM + BAR_HEIGHT
 BAR_X_L = 2.55
 BAR_X_R = BAR_X_L + 0.1
+
 
 
 
@@ -85,8 +91,20 @@ class BallsOfFury:
         # Textos de pontuacao
         gl.glColor3f(0.2, 0.2, 0.2)
         gl.glLineWidth(2)
-        self.renderText(-2.2, 2, ("Player1: " + str(self.score[0])), tamanho=0.001)
-        self.renderText(+0.9, 2, ("Player2: " + str(self.score[1])), tamanho=0.001)
+        self.renderText(PLAYER_X[0][0], TEXT_Y,
+                        ("Player1: " + str(self.score[0])), tamanho=0.001)
+        self.renderText(PLAYER_X[1][0], TEXT_Y,
+                        ("Player2: " + str(self.score[1])), tamanho=0.001)
+
+
+        # Desenha reta abaixo
+        gl.glLineWidth(2)
+
+        gl.glBegin(gl.GL_LINES)
+        gl.glVertex3f(PLAYER_X[self.currentPlayer][0], (TEXT_Y - 0.08), 1)
+        gl.glVertex3f(PLAYER_X[self.currentPlayer][1], (TEXT_Y - 0.08), 1)
+        gl.glEnd()
+
         gl.glLineWidth(1)
 
 
@@ -184,6 +202,7 @@ class BallsOfFury:
         gl.glPopMatrix()
 
 
+    # Arremessa bolinha na direcao e forca atual (e muda jogador)
     def throw(self):
         # Muda estado do jogo para aguardar termino da jogada
         self.state = State.running
@@ -196,9 +215,6 @@ class BallsOfFury:
                            velX=math.cos(anguloReal) * (self.strength*25 + 8),
                            velY=math.sin(anguloReal) * (self.strength*25 + 8),
                            color=COLORS[self.currentPlayer])
-
-        # Muda proximo player a jogar
-        self.currentPlayer = (self.currentPlayer + 1) % 2
 
 
     # Desenhas as bolinhas que ja estao em campo
@@ -235,6 +251,7 @@ class BallsOfFury:
         gl.glPopMatrix()
 
 
+    # Desenha barra de forca e controla mecanismo de alteracao
     def drawStrengthBar(self):
 
         if (self.state == State.aiming):
@@ -251,6 +268,7 @@ class BallsOfFury:
 
 
         height = self.strength * BAR_HEIGHT
+
 
         # Desenha quadrado interno colorido
         gl.glBegin(gl.GL_QUADS)
@@ -273,6 +291,7 @@ class BallsOfFury:
         gl.glVertex3f(BAR_X_R, BAR_Y_TOP, 0)
         gl.glVertex3f(BAR_X_R, BAR_Y_BOTTOM, 0)
         gl.glVertex3f(BAR_X_L, BAR_Y_BOTTOM, 0)
+
         gl.glEnd()
         gl.glLineWidth(1)
 
@@ -312,30 +331,31 @@ class BallsOfFury:
 
                 # TO-DO: generalizar para raios diferentes
                 if (i != j and distMatrix[i][j] <= 2 * RADIUS):
-                    # Colisao :: Ver referencias.txt -> ref 3.2
-                    # TO-DO: tratar massas diferentes
+                    if (not self.p.stillColliding[i][j]):
+                        # Colisao :: Ver referencias.txt -> ref 3.2
+                        # TO-DO: tratar massas diferentes
 
-                    # Marca que collisao esta ocorrendo - evita mais de um tratamento por colisao
-                    self.p.stillColliding[i][j] = 1
+                        # Marca que collisao esta ocorrendo - evita mais de um tratamento por colisao
+                        self.p.stillColliding[i][j] = 1
 
-                    n = self.p.pos[i] - self.p.pos[j]           # Calcula vetor normal
-                    un = n / np.sqrt(n.dot(n))                  # Vetor unitario normal
-                    ut = np.array([-un[1], un[0]])              # Vetor unitario tangente
+                        n = self.p.pos[i] - self.p.pos[j]           # Calcula vetor normal
+                        un = n / np.sqrt(n.dot(n))                  # Vetor unitario normal
+                        ut = np.array([-un[1], un[0]])              # Vetor unitario tangente
 
-                    vIn = un.dot(self.p.vel[i])                 # Projecao da velocidade na direcao normal
-                    vJn = un.dot(self.p.vel[j])
+                        vIn = un.dot(self.p.vel[i])                 # Projecao da velocidade na direcao normal
+                        vJn = un.dot(self.p.vel[j])
 
-                    vJt = ut.dot(self.p.vel[i])                 # Projecao na direcao tangente
-                    vIt = ut.dot(self.p.vel[j])
+                        vIt = ut.dot(self.p.vel[i])                 # Projecao na direcao tangente
+                        vJt = ut.dot(self.p.vel[j])
 
-                    self.p.vel[i] = un * vJn + vJt              # Trazendo de volta para base canonica
-                    self.p.vel[j] = un * vIn + vIt
+                        self.p.vel[i] = un * vJn + vIt              # Trazendo de volta para base canonica
+                        self.p.vel[j] = un * vIn + vJt
                 else:
                     if (self.p.stillColliding[i][j]):
                         self.p.stillColliding[i][j] = 0
-                        
 
 
+    # Renderiza todo o jogo
     def render(self):
 
         # Calcula passagem de tempo
@@ -346,16 +366,18 @@ class BallsOfFury:
         # Cenario de fundo do jogo
         self.drawScoreLimits()
 
-
+        # Se estiver em estado de mira
         if self.state == State.aiming:
             # Desenha bolinha a ser jogada
             self.drawPlayingBall()
 
-
+        # Se estiver em estado de esperar bolinhas rodarem
         elif self.state == State.running:
 
             # Quando todas bolinhas ja tiverem parado volta ao estado aiming
-            if not (self.p.vel[self.p.vel!=0].any()):
+            if not (self.p.vel[self.p.vel>0.5].any()):
+                # Muda proximo player a jogar
+                self.currentPlayer = (self.currentPlayer + 1) % 2
                 self.state = State.aiming
 
 
